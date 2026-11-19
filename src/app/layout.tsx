@@ -5,7 +5,7 @@ import { AskBoard, AskHeaderButton } from "./ask";
 import { Logo } from "./components";
 import "./globals.css";
 
-const brand = Archivo({ variable: "--font-brand", subsets: ["latin"] });
+const brand = Archivo({ variable: "--font-brand", subsets: ["latin"], axes: ["wdth"] });
 const ui = Geist({ variable: "--font-ui", subsets: ["latin"] });
 
 export const metadata: Metadata = {

@@ -1,15 +1,36 @@
-import { OVERDUE_ICON, STATUS_STYLE, type Status } from "@/lib/status";
+import { STATUS_STYLE, type Status } from "@/lib/status";
 
 // Icon + coloured label; an overdue Scheduled job shows one red "Overdue" state instead of two chips.
 export function StatusBadge({ status, daysOverdue }: { status: Status; daysOverdue?: number | null }) {
   const late = daysOverdue != null;
   return (
     <span className={`inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap ${late ? "text-red-700" : STATUS_STYLE[status].text}`}>
-      <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0">
-        <path d={late ? OVERDUE_ICON : STATUS_STYLE[status].icon} />
-      </svg>
+      <StatusGlyph status={late ? "Overdue" : status} />
       {late ? `Overdue · ${daysOverdue} ${daysOverdue === 1 ? "day" : "days"}` : status}
     </span>
+  );
+}
+
+// One family of lifecycle glyphs: an open ring fills up as the job moves along, then closes solid.
+// Overdue is the Scheduled ring with a live centre: same job, just late.
+export function StatusGlyph({ status, className = "size-4" }: { status: Status | "Overdue"; className?: string }) {
+  const solid = status === "Completed" || status === "Cancelled";
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" className={`shrink-0 ${className}`}>
+      {solid ? (
+        <>
+          <circle cx="8" cy="8" r="7" fill="currentColor" />
+          <path d={status === "Completed" ? "m5 8.3 2 2 4-4.3" : "m5.6 10.4 4.8-4.8"} fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      ) : (
+        <>
+          <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          {status === "In Progress" && <path d="M8 4.3a3.7 3.7 0 0 1 0 7.4Z" fill="currentColor" />}
+          {status === "On Hold" && <rect x="5.2" y="7.2" width="5.6" height="1.6" rx="0.8" fill="currentColor" />}
+          {status === "Overdue" && <circle cx="8" cy="8" r="2.4" fill="currentColor" />}
+        </>
+      )}
+    </svg>
   );
 }
 
@@ -31,15 +52,28 @@ export function Tech({ name, size = 28 }: { name: string | null; size?: number }
   );
 }
 
+// Mark: a voltage trace that dips into a V and spikes, ending on a live terminal. Wordmark in condensed Archivo.
+export function LogoMark({ className = "size-9" }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 40 40" className={`shrink-0 ${className}`}>
+      <rect width="40" height="40" rx="10" className="fill-ink" />
+      <path d="M6 15h6.5l6 14L26 9l3 6h2.5" fill="none" className="stroke-brand" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.35" />
+      <path d="M6 15h6.5l6 14L26 9l3 6h2.5" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="33.5" cy="15" r="2.6" fill="#ffd23f" />
+    </svg>
+  );
+}
+
 export function Logo() {
   return (
     <span className="flex items-center gap-2.5">
-      <svg aria-hidden viewBox="0 0 32 32" className="size-9">
-        <rect width="32" height="32" rx="9" className="fill-brand" />
-        <path d="M18 5 9 18h6l-1.5 9L23 14h-6l1-9Z" fill="#fff" />
-      </svg>
-      <span className="font-display text-lg leading-none font-extrabold tracking-tight">
-        Voltline<span className="block text-[0.62rem] font-semibold tracking-[0.2em] text-muted uppercase">Electrical</span>
+      <LogoMark />
+      <span className="flex flex-col leading-none">
+        <span className="font-display text-[1.35rem] font-extrabold tracking-[-0.01em] uppercase [font-stretch:72%]">Voltline</span>
+        <span className="mt-0.5 flex items-center gap-1.5 text-[0.6rem] font-semibold tracking-[0.28em] text-muted uppercase">
+          <span aria-hidden className="h-px w-3 bg-brand" />
+          Electrical
+        </span>
       </span>
     </span>
   );
