@@ -52,28 +52,26 @@ export function Tech({ name, size = 28 }: { name: string | null; size?: number }
   );
 }
 
-// Mark: a voltage trace that dips into a V and spikes, ending on a live terminal. Wordmark in condensed Archivo.
+// Mark: a V whose right stroke is a lightning bolt. Ink arm, brand-blue bolt; the bolt's tip lands beside the arm.
+const MARK_ARM = "M2.5 4h10.6l6.3 17.2V36h-4.6Z";
+const MARK_BOLT = "M37.5 4H26.4l-5 13.6h5.2L21 36l12.4-21.2h-5.1Z";
+
 export function LogoMark({ className = "size-9" }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 40 40" className={`shrink-0 ${className}`}>
-      <rect width="40" height="40" rx="10" className="fill-ink" />
-      <path d="M6 15h6.5l6 14L26 9l3 6h2.5" fill="none" className="stroke-brand" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.35" />
-      <path d="M6 15h6.5l6 14L26 9l3 6h2.5" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="33.5" cy="15" r="2.6" fill="#ffd23f" />
+      <path d={MARK_ARM} className="fill-ink" />
+      <path d={MARK_BOLT} className="fill-brand" />
     </svg>
   );
 }
 
 export function Logo() {
   return (
-    <span className="flex items-center gap-2.5">
+    <span className="flex items-center gap-2">
       <LogoMark />
-      <span className="flex flex-col leading-none">
-        <span className="font-display text-[1.35rem] font-extrabold tracking-[-0.01em] uppercase [font-stretch:72%]">Voltline</span>
-        <span className="mt-0.5 flex items-center gap-1.5 text-[0.6rem] font-semibold tracking-[0.28em] text-muted uppercase">
-          <span aria-hidden className="h-px w-3 bg-brand" />
-          Electrical
-        </span>
+      <span className="flex flex-col">
+        <span className="font-display text-[1.75rem] leading-[0.85] font-black uppercase [font-stretch:75%]">Voltline</span>
+        <span className="mt-1 text-[0.56rem] leading-none font-bold tracking-[0.36em] text-muted uppercase">Electrical</span>
       </span>
     </span>
   );
