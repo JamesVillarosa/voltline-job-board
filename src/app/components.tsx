@@ -52,23 +52,46 @@ export function Tech({ name, size = 28 }: { name: string | null; size?: number }
   );
 }
 
-// Mark: a V whose right stroke is a lightning bolt. Ink arm, brand-blue bolt; the bolt's tip lands beside the arm.
+// Mark: a V whose right stroke is a lightning bolt. Ink arm lit from the top-left; the bolt runs cyan to brand
+// blue with a soft glow and a top sheen, so it reads as charged rather than flat. Ids are fixed: one logo per page.
 const MARK_ARM = "M2.5 4h10.6l6.3 17.2V36h-4.6Z";
 const MARK_BOLT = "M37.5 4H26.4l-5 13.6h5.2L21 36l12.4-21.2h-5.1Z";
 
-export function LogoMark({ className = "size-9" }: { className?: string }) {
+export function LogoMark({ className = "size-11" }: { className?: string }) {
   return (
-    <svg aria-hidden viewBox="0 0 40 40" className={`shrink-0 ${className}`}>
-      <path d={MARK_ARM} className="fill-ink" />
-      <path d={MARK_BOLT} className="fill-brand" />
+    <svg aria-hidden viewBox="-3 -3 46 46" className={`shrink-0 ${className}`}>
+      <defs>
+        <linearGradient id="vl-arm" x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0" stopColor="#3a4566" />
+          <stop offset="0.55" stopColor="#131a30" />
+          <stop offset="1" stopColor="#070a14" />
+        </linearGradient>
+        <linearGradient id="vl-bolt" x1="1" y1="0" x2="0.2" y2="1">
+          <stop offset="0" stopColor="#7fd4ff" />
+          <stop offset="0.45" stopColor="#3b5bff" />
+          <stop offset="1" stopColor="#1a2fc4" />
+        </linearGradient>
+        <linearGradient id="vl-sheen" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.5" />
+          <stop offset="0.35" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+        <filter id="vl-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2" />
+        </filter>
+      </defs>
+      <path d={MARK_BOLT} fill="#3b5bff" opacity="0.45" filter="url(#vl-glow)" transform="translate(0.6 1.4)" />
+      <path d={MARK_ARM} fill="url(#vl-arm)" />
+      <path d={MARK_ARM} fill="url(#vl-sheen)" opacity="0.45" />
+      <path d={MARK_BOLT} fill="url(#vl-bolt)" />
+      <path d={MARK_BOLT} fill="url(#vl-sheen)" />
     </svg>
   );
 }
 
 export function Logo() {
   return (
-    <span className="flex items-center gap-2">
-      <LogoMark />
+    <span className="flex items-center gap-1.5">
+      <LogoMark className="-ml-1 size-11" />
       <span className="flex flex-col">
         <span className="font-display text-[1.75rem] leading-[0.85] font-black uppercase [font-stretch:75%]">Voltline</span>
         <span className="mt-1 text-[0.56rem] leading-none font-bold tracking-[0.36em] text-muted uppercase">Electrical</span>
