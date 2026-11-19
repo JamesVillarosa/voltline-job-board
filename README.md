@@ -2,7 +2,7 @@
 
 A job board for a small electrical contractor (Voltline Electrical, a fictional company): every job in one list, filter and search it, open a job to change its status or leave a note. Next.js 16 (TypeScript) + Postgres, deployed on Vercel with Neon Postgres.
 
-**Live demo:** _link coming_ · **Health:** `/api/health`
+**Live demo:** https://voltline-job-board.vercel.app · **Health:** `/api/health`
 
 > Portfolio project. Every company name, customer, suburb, technician and phone number is fictional (phone numbers come from the ACMA range reserved for fiction). No sign-in: anyone can try every feature.
 
