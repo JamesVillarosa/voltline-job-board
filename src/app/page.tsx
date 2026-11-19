@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { getStats, isSort, isStatus, listJobs, overdueJobs, STATUSES, type Job, type Status } from "@/lib/db";
-import { OVERDUE_ICON, STATUS_STYLE } from "@/lib/status";
+import { STATUS_STYLE } from "@/lib/status";
 import { date, money } from "@/lib/format";
-import { StatusBadge, Tech } from "./components";
+import { StatusBadge, StatusGlyph, Tech } from "./components";
 import { Filters } from "./filters";
 import { KeepSort, Sorted } from "./sorted";
 
@@ -28,7 +28,7 @@ export default function Home({ searchParams }: PageProps<"/">) {
 function BoardSkeleton() {
   return (
     <div aria-busy className="space-y-8">
-      <div className="brand-panel h-72 animate-pulse rounded-3xl" />
+      <div className="brand-panel h-72 animate-pulse rounded-2xl" />
       <div className="h-[480px] animate-pulse rounded-2xl bg-line/70" />
     </div>
   );
@@ -63,20 +63,19 @@ async function Board({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
 
   return (
     <div className="space-y-8 sm:space-y-10">
-      <section aria-labelledby="today" className="brand-panel overflow-hidden rounded-3xl text-white shadow-[0_24px_48px_-28px_rgb(20_40_160/0.7)]">
+      <section aria-labelledby="today" className="brand-panel overflow-hidden rounded-2xl text-white">
         <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.25fr_1fr] lg:gap-10">
           <div className="flex flex-col">
             <p className="text-sm font-semibold text-white">
               {greeting()}, team · {today.format(new Date())}
             </p>
             <h1 id="today" className="mt-2 text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-5xl xl:text-6xl">
-              Here’s the day at a glance
+              <span className="tabular">{money(open.total)}</span> of open work
             </h1>
-            <p className="mt-5 text-lg font-semibold">
-              <span className="tabular font-display text-3xl font-extrabold sm:text-4xl">{money(open.total)}</span>
-              <span className="block sm:inline"> of open work across {open.count} jobs</span>
+            <p className="mt-3 text-lg font-semibold text-white/85">
+              {open.count} jobs on the board{overdue.length > 0 && <>, {overdue.length} past their booked day</>}
             </p>
-            {/* Straight on the orange: number, status, dollars. Each opens that filter. */}
+            {/* Straight on the blue: number, status, dollars. Each opens that filter. */}
             <ul className="mt-auto grid grid-cols-3 divide-x divide-white/25 pt-8">
               {OPEN.map((s) => (
                 <li key={s} className="px-3 first:pl-0 sm:px-5">
@@ -97,7 +96,7 @@ async function Board({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
             {overdue.length > 0 ? (
               <>
                 <div className="flex items-start gap-3">
-                  <span aria-hidden className="mt-1.5 size-2.5 shrink-0 rounded-full bg-red-500 ring-4 ring-red-100" />
+                  <StatusGlyph status="Overdue" className="mt-1 size-4 text-red-600" />
                   <div>
                     <h2 className="text-lg font-bold">Needs a follow-up</h2>
                     <p className="mt-0.5 text-sm text-muted">
@@ -153,7 +152,7 @@ async function Board({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
 
         <nav aria-label="Filter by status" className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
           <ul className="flex w-max gap-2">
-            {chips.map(([key, label, dot, count]) => {
+            {chips.map(([key, label, , count]) => {
               const active = key === activeChip;
               return (
                 <li key={label} className={key === "overdue" ? "ml-1 border-l border-line pl-3" : undefined}>
@@ -169,9 +168,9 @@ async function Board({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
                           : "bg-white text-ink/80 ring-line hover:text-ink hover:ring-ink/25"
                     }`}
                   >
-                    {dot && <span aria-hidden className={`size-2 rounded-full ${dot}`} />}
+                    {key && key !== "overdue" && <StatusGlyph status={key} className={`size-3.5 ${active ? "" : STATUS_STYLE[key].text}`} />}
                     {key === "overdue" && (
-                      <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d={OVERDUE_ICON} /></svg>
+                      <StatusGlyph status="Overdue" className="size-3.5" />
                     )}
                     {label}
                     <span className={`tabular text-sm ${active ? "text-white/75" : key === "overdue" ? "text-red-700/80" : "text-muted"}`}>{count}</span>

@@ -8,7 +8,7 @@ const rows = (page: import("@playwright/test").Page) => page.locator("#results")
 test("lists 20 seeded jobs with stats", async ({ page }) => {
   await page.goto("/");
   await expect(rows(page)).toHaveCount(20);
-  await expect(page.getByRole("heading", { name: /day at a glance/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /of open work/i })).toBeVisible();
 });
 
 test("filters by status and keeps it in the URL", async ({ page }) => {

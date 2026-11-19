@@ -2,6 +2,7 @@
 
 import { createContext, startTransition, use, useActionState, useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { STATUS_STYLE, STATUSES, TEAM, type Status } from "@/lib/status";
+import { StatusGlyph } from "../../components";
 import { addNote, briefJob, editNote, setNoteDeleted, setStatus, undoStatus, type BriefState, type FormState } from "./actions";
 
 const MAX = 2000;
@@ -249,9 +250,7 @@ export function StatusForm({ jobId, current }: { jobId: number; current: Status 
                 active ? "bg-ink text-white ring-ink" : `bg-white ring-line hover:ring-ink/30 ${STATUS_STYLE[s].text}`
               }`}
             >
-              <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4">
-                <path d={STATUS_STYLE[s].icon} />
-              </svg>
+              <StatusGlyph status={s} />
               {s}
             </button>
           );

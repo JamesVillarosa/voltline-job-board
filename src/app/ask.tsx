@@ -143,7 +143,7 @@ export function AskBoard() {
         aria-label={open ? "Close" : "Ask the board"}
         className={`hidden size-11 items-center sm:flex justify-center gap-2 rounded-full sm:h-10 sm:w-auto sm:pr-4 sm:pl-3.5 bg-ink text-sm font-bold text-white shadow-[0_12px_30px_-10px_rgb(10_14_40/0.6)] transition-[background-color,transform,opacity] duration-200 ease-out hover:bg-ink/90 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand`}
       >
-        <svg aria-hidden viewBox="0 0 20 20" className="size-4 text-brand" fill="currentColor"><path d="M10 1l2.2 5.8L18 9l-5.8 2.2L10 17l-2.2-5.8L2 9l5.8-2.2L10 1Z" /></svg>
+        <svg aria-hidden viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-6l-4 3v-3H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" /><path d="M7 8.5h6M7 11h3.5" strokeLinecap="round" /></svg>
         {/* Icon only on phones so it never sits over a job's value or buttons. */}
         <span aria-hidden className="hidden sm:inline">{open ? "Close" : "Ask"}</span>
       </button>
@@ -161,7 +161,7 @@ export function AskHeaderButton() {
       onClick={() => dispatchEvent(new Event("ask:toggle"))}
       className="flex h-10 items-center gap-1.5 rounded-full bg-ink px-3.5 text-sm font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:hidden"
     >
-      <svg aria-hidden viewBox="0 0 20 20" className="size-4 text-brand" fill="currentColor"><path d="M10 1l2.2 5.8L18 9l-5.8 2.2L10 17l-2.2-5.8L2 9l5.8-2.2L10 1Z" /></svg>
+      <svg aria-hidden viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M4 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-6l-4 3v-3H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" /><path d="M7 8.5h6M7 11h3.5" strokeLinecap="round" /></svg>
       Ask
     </button>
   );

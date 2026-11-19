@@ -2,9 +2,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getJob } from "@/lib/db";
-import { OVERDUE_ICON, STATUS_STYLE } from "@/lib/status";
+import { STATUS_STYLE } from "@/lib/status";
 import { date, dateTime, money } from "@/lib/format";
-import { Tech } from "../../components";
+import { StatusGlyph, Tech } from "../../components";
 import { AiBrief, NoteForm, NoteItem, StatusForm, ToastProvider } from "./forms";
 
 export async function generateMetadata({ params }: PageProps<"/jobs/[id]">) {
@@ -39,14 +39,14 @@ async function JobDetail({ params }: Pick<PageProps<"/jobs/[id]">, "params">) {
         <span aria-hidden className="transition-transform duration-200 ease-out group-hover:-translate-x-0.5">←</span> All jobs
       </Link>
 
-      <section className="brand-panel overflow-hidden rounded-3xl p-5 text-white shadow-[0_24px_48px_-28px_rgb(20_40_160/0.7)] sm:p-8">
+      <section className="brand-panel overflow-hidden rounded-2xl p-5 text-white sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-semibold text-white/85">
               <span><span className="tabular">{job.job_number}</span> · {job.job_type}</span>
               {job.days_overdue != null && (
                 <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white px-3 text-[13px] font-bold text-red-700">
-                  <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d={OVERDUE_ICON} /></svg>
+                  <StatusGlyph status="Overdue" className="size-3.5" />
                   Overdue · {job.days_overdue} {job.days_overdue === 1 ? "day" : "days"}
                 </span>
               )}

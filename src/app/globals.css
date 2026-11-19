@@ -49,12 +49,14 @@ html[data-busy] #results {
   scroll-margin-top: 5.5rem;
 }
 
-/* Brand blue with a soft light in one corner and shade in the other, so it isn't flat. */
+/* Flat brand blue with a faint blueprint grid: drafted, not glowing. */
 .brand-panel {
-  background:
-    radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.16), transparent 55%),
-    radial-gradient(80% 80% at 100% 100%, rgb(10 20 110 / 0.22), transparent 60%),
-    var(--color-brand);
+  background-color: var(--color-brand);
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
 }
 
 /* New chat bubbles, notes and the brief fade in: a state change, not decoration. */
