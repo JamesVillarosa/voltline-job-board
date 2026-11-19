@@ -1,0 +1,32 @@
+{
+  "name": "voltline-job-board",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "vercel-build": "node scripts/migrate.mjs && next build",
+    "start": "node scripts/migrate.mjs && next start",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
+    "db:reset": "node --env-file-if-exists=.env.local scripts/migrate.mjs --reset",
+    "lint": "eslint",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "postgres": "^3.4.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,247 @@
+import { expect, test } from "@playwright/test";
+
+// Table rows on desktop, job cards on phones.
+// Floating "Ask the board" on wider screens, "Ask" in the header on phones.
+const askButton = (page: import("@playwright/test").Page) => page.getByRole("button", { name: /^Ask( the board)?$/ }).filter({ visible: true });
+const rows = (page: import("@playwright/test").Page) => page.locator("#results").locator("tbody tr:visible, li:visible");
+
+test("lists 20 seeded jobs with stats", async ({ page }) => {
+  await page.goto("/");
+  await expect(rows(page)).toHaveCount(20);
+  await expect(page.getByRole("heading", { name: /day at a glance/i })).toBeVisible();
+});
+
+test("filters by status and keeps it in the URL", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Filter by status" }).getByRole("link", { name: /On Hold/ }).click();
+  await expect(page).toHaveURL(/status=On\+Hold/);
+  const count = await rows(page).count();
+  expect(count).toBeGreaterThan(0);
+  for (const row of await rows(page).allInnerTexts()) expect(row.toLowerCase()).toContain("on hold");
+});
+
+test("searches by customer, case-insensitive, and shows empty state", async ({ page }) => {
+  await page.goto("/");
+  const search = page.getByRole("searchbox", { name: "Search jobs" });
+  await search.fill("bakehouse");
+  await expect(page).toHaveURL(/q=bakehouse/);
+  await expect(rows(page)).toHaveCount(1);
+  await expect(rows(page).first()).toContainText("Copperleaf Bakehouse");
+
+  await search.fill("zzz-nobody");
+  await expect(page.getByText(/No jobs match/)).toBeVisible();
+  await page.getByRole("link", { name: "Clear filters" }).click();
+  await expect(rows(page)).toHaveCount(20);
+  await expect(search).toHaveValue("");
+});
+
+test("search combines with status filter", async ({ page }) => {
+  await page.goto("/?status=Completed&q=gareth");
+  await expect(rows(page)).toHaveCount(1);
+  await expect(rows(page).first()).toContainText("Gareth Pryce");
+});
+
+test("sorts by value", async ({ page }) => {
+  await page.goto("/?sort=value");
+  const values = (await rows(page).locator(".font-display").allInnerTexts()).map((v) => Number(v.replace(/[^\d.]/g, "")));
+  expect(values).toEqual([...values].sort((a, b) => b - a));
+});
+
+test("adds a note that persists after reload", async ({ page }, info) => {
+  await page.goto("/");
+  await rows(page).first().getByRole("link").click();
+  await expect(page.getByRole("heading", { name: "Activity" })).toBeVisible();
+
+  const note = `Test note ${info.project.name} ${Date.now()}`;
+  await page.getByLabel("Add a note").fill(note);
+  await page.getByRole("group", { name: "Written by" }).getByText("Zoe").click();
+  await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page.locator("ol li").first()).toContainText(note);
+  await expect(page.locator("ol li").first()).toContainText("Zoe ·");
+  await expect(page.getByLabel("Add a note")).toHaveValue("");
+
+  await page.reload();
+  await expect(page.locator("ol li").first()).toContainText(note);
+});
+
+test("rejects an empty note", async ({ page }) => {
+  await page.goto("/jobs/2");
+  await page.getByLabel("Add a note").fill("   ");
+  await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page.locator("#note-error")).toHaveText("Write a note first.");
+});
+
+test("needs an author before saving a note", async ({ page }) => {
+  await page.goto("/jobs/2");
+  await page.evaluate(() => localStorage.removeItem("voltline-author"));
+  await page.reload();
+  await page.getByLabel("Add a note").fill("No author yet");
+  await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page.locator("#note-error")).toHaveText("Pick who's writing the note.");
+  // The text survives the failed save, and the error goes once they pick someone.
+  await expect(page.getByLabel("Add a note")).toHaveValue("No author yet");
+  await page.getByRole("group", { name: "Written by" }).getByText("Noah").click();
+  await expect(page.locator("#note-error")).toBeEmpty();
+});
+
+test("edits and deletes a note, with undo", async ({ page }, info) => {
+  await page.goto("/jobs/4");
+  const note = `Edit me ${info.project.name} ${Date.now()}`;
+  await page.getByLabel("Add a note").fill(note);
+  await page.getByRole("group", { name: "Written by" }).getByText("Kai").click();
+  await page.getByRole("button", { name: "Save note" }).click();
+  const item = page.locator("ol li").filter({ hasText: note });
+  await expect(item).toBeVisible();
+
+  await item.getByRole("button", { name: "Edit" }).click();
+  await page.getByLabel("Edit note").fill(`${note} edited`);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(item).toContainText(`${note} edited`);
+
+  await item.getByRole("button", { name: "Delete" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Note deleted" })).toBeVisible();
+  await expect(item).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(item).toContainText(`${note} edited`);
+  await page.reload();
+  await expect(item).toContainText(`${note} edited`);
+});
+
+test("undo puts the status back", async ({ page }) => {
+  await page.goto("/jobs/5");
+  const before = await page.getByRole("button", { pressed: true }).innerText();
+  const next = before.trim() === "On Hold" ? "In Progress" : "On Hold";
+  await page.getByRole("button", { name: next, exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: `Status changed to ${next}` })).toBeVisible();
+  await expect(page.getByRole("button", { name: next, exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByRole("button", { name: before.trim(), exact: true })).toHaveAttribute("aria-pressed", "true");
+  // Undo takes the change out of the history rather than logging a second one.
+  await expect(page.locator("ol li").filter({ hasText: `→ ${next}` })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("button", { name: before.trim(), exact: true })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("changes status and logs it", async ({ page }) => {
+  await page.goto("/jobs/3");
+  const done = page.getByRole("button", { name: "Completed", exact: true });
+  const next = (await done.getAttribute("aria-pressed")) === "true" ? "In Progress" : "Completed";
+  await page.getByRole("button", { name: next, exact: true }).click();
+  await expect(page.locator("ol li").first()).toContainText(`→ ${next}`);
+  await page.reload();
+  await expect(page.getByRole("button", { name: next, exact: true })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("unknown job shows not found", async ({ page }) => {
+  await page.goto("/jobs/99999");
+  await expect(page.getByRole("heading", { name: "Job not found" })).toBeVisible();
+});
+
+test("flags scheduled jobs past their booked date", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("status").filter({ hasText: "past the booked date" })).toBeVisible();
+  await page.getByRole("link", { name: "Review overdue" }).click();
+  await expect(page).toHaveURL(/overdue=1/);
+  await expect(rows(page)).toHaveCount(4);
+  for (const row of await rows(page).allInnerTexts()) expect(row).toMatch(/Overdue · \d+ days?/);
+});
+
+test("search matches suburb and job number too", async ({ page }) => {
+  await page.goto("/?q=willow");
+  await expect.poll(() => rows(page).count()).toBeGreaterThan(1);
+  await page.goto("/?q=VLT-2049");
+  await expect(rows(page)).toHaveCount(1);
+  await expect(rows(page).first()).toContainText("Margaret Kell");
+});
+
+test("digest endpoint summarises the board for automations", async ({ request }) => {
+  const body = await (await request.get("/api/digest")).json();
+  expect(body.overdue.length).toBeGreaterThan(0);
+  expect(body.text).toContain("in the pipeline");
+});
+
+test("handover brief summarises the job record", async ({ page }) => {
+  await page.goto("/jobs/2");
+  await page.getByRole("button", { name: "Write brief" }).click();
+  const text = page.getByRole("region", { name: "Handover brief" }).locator("p.enter");
+  await expect(text).toContainText(/ for .+ in /);
+  await expect(text).toContainText(/booked|since|completed|cancelled/);
+  await expect(text).not.toContainText("Status:");
+});
+
+test("ask-the-board answers from live jobs and closes on Escape", async ({ page }) => {
+  await page.goto("/");
+  const launcher = askButton(page);
+  await launcher.click();
+  const panel = page.getByRole("dialog", { name: "Ask the board" });
+  await panel.getByRole("button", { name: "What's on in Elm Park?" }).click();
+  await expect(panel.locator("ol li").last()).toContainText("Hannah Whitlock");
+  await panel.getByLabel("Question").fill("who is on hold?");
+  await panel.getByRole("button", { name: "Ask" }).click();
+  await expect(panel.locator("ol li").last()).toContainText("On hold");
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(launcher).toBeFocused();
+});
+
+test("ask-the-board closes on a click outside", async ({ page }) => {
+  await page.goto("/");
+  await askButton(page).click();
+  const panel = page.getByRole("dialog", { name: "Ask the board" });
+  await expect(panel).toBeVisible();
+  await panel.getByLabel("Question").click();
+  await expect(panel).toBeVisible();
+  await page.mouse.click(10, 300);
+  await expect(panel).toBeHidden();
+});
+
+test("ask API covers the main intents", async ({ request }) => {
+  const ask = async (question: string) => (await (await request.post("/api/ask", { data: { question } })).json()).answer as string;
+  expect(await ask("What's overdue?")).toMatch(/Past the booked date/);
+  expect(await ask("Biggest open job?")).toMatch(/Biggest open jobs/);
+  expect(await ask("pipeline total")).toMatch(/Open pipeline is \$/);
+  expect(await ask("what is Zoe doing")).toMatch(/Zoe's jobs/);
+  expect(await ask("asdf")).toMatch(/can't help/);
+  expect(await ask("what's the weather like")).toMatch(/I only know the jobs on this board/);
+  expect(await ask("Hannah Whitlock phone number")).toMatch(/can't give out phone numbers/);
+  expect((await request.post("/api/ask", { data: { question: "" } })).status()).toBe(400);
+});
+
+test("health endpoint reports DB up", async ({ request }) => {
+  const res = await request.get("/api/health");
+  expect(res.ok()).toBeTruthy();
+  expect(await res.json()).toMatchObject({ ok: true, db: "up" });
+});
+
+test("slash focuses search and chat links job refs to the job page", async ({ page, isMobile }) => {
+  test.skip(isMobile, "keyboard shortcut is a desktop affordance");
+  await page.goto("/");
+  await page.waitForLoadState("networkidle"); // shortcut binds on hydration
+  await page.keyboard.press("/");
+  await expect(page.getByRole("searchbox", { name: "Search jobs" })).toBeFocused();
+  await askButton(page).click();
+  const panel = page.getByRole("dialog", { name: "Ask the board" });
+  await panel.getByRole("button", { name: "Biggest open job?" }).click();
+  await panel.getByRole("link", { name: "VLT-2042" }).click();
+  await expect(page).toHaveURL(/\/jobs\/2$/);
+});
+
+test("sort menu works by mouse and keyboard", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Sort jobs/ }).click();
+  await page.getByRole("option", { name: "Highest value" }).click();
+  await expect(page).toHaveURL(/sort=value/);
+  const menu = page.getByRole("button", { name: /Sort jobs: Highest value/ });
+  await menu.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/sort=customer/);
+  await expect(page.getByRole("listbox")).toBeHidden();
+});
+
+test("demo reset endpoint refuses callers without the cron secret", async ({ request }) => {
+  expect((await request.get("/api/reset")).status()).toBe(401);
+  expect((await request.get("/api/reset", { headers: { authorization: "Bearer wrong" } })).status()).toBe(401);
+});

@@ -1,0 +1,4 @@
+{
+  "regions": ["syd1"],
+  "crons": [{ "path": "/api/reset", "schedule": "0 14 * * *" }]
+}

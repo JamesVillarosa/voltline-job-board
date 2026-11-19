@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-brand), var(--font-ui), sans-serif;
+  --color-brand: #2346e8;
+  --color-brand-deep: #1b37c4; /* text and button fill on white: 7.6:1 */
+  --color-brand-press: #142a99;
+  --color-brand-soft: #eef1fe;
+  --color-ink: #0d1222;
+  --color-canvas: #f4f5f8;
+  --color-line: #e2e5ee;
+  --color-muted: #5a6275;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html {
+  scroll-padding-top: 6rem; /* keep focused rows clear of the sticky header */
+}
+
+body {
+  @apply bg-canvas text-ink antialiased;
+  overflow-x: clip;
+}
+
+@utility shell {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Archivo for headings and big figures; Inter carries body text. */
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
+
+/* While a sort or search is loading, dim the old results instead of leaving them looking current. */
+html[data-busy] #results {
+  opacity: 0.55;
+  transition: opacity 150ms ease;
+}
+#results {
+  transition: opacity 150ms ease;
+}
+
+#jobs {
+  scroll-margin-top: 5.5rem;
+}
+
+/* Brand blue with a soft light in one corner and shade in the other, so it isn't flat. */
+.brand-panel {
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgb(255 255 255 / 0.16), transparent 55%),
+    radial-gradient(80% 80% at 100% 100%, rgb(10 20 110 / 0.22), transparent 60%),
+    var(--color-brand);
+}
+
+/* New chat bubbles, notes and the brief fade in: a state change, not decoration. */
+@keyframes enter {
+  from { opacity: 0; transform: translateY(4px); }
+}
+.enter {
+  animation: enter 220ms var(--ease-out-strong);
+}
+
+/* Popovers (chat panel, sort menu) grow out of the button that opened them. */
+@keyframes pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+.pop {
+  animation: pop 160ms var(--ease-out-strong);
+}
+.ask-panel:not([hidden]) {
+  transform-origin: bottom right;
+  animation: pop 180ms var(--ease-out-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter, .pop, .ask-panel:not([hidden]) { animation: none; }
+}
